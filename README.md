@@ -4,12 +4,9 @@
 ![ShellCheck](https://img.shields.io/badge/shellcheck-clean-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-A polished Bash toolbox for running Linux servers: bootstrap a fresh VPS, install Docker,
-take encrypted off-site backups, reclaim disk space, and monitor TLS certificates and uptime.
+Six Bash scripts for running small Linux fleets: bootstrap a fresh VPS, install Docker, take encrypted off-site backups, reclaim disk space, and watch TLS expiry and uptime. Every script is idempotent, validates its arguments, runs under `set -euo pipefail`, supports a `DRY_RUN=1` preview, and is ShellCheck-clean. 21 [bats](https://github.com/bats-core/bats-core) tests run in CI.
 
-**Why:** most "server setup" gists are copy-paste one-offs. These scripts are idempotent,
-argument-validated, `set -euo pipefail`, support `DRY_RUN=1` previews, ShellCheck-clean and covered by
-[bats](https://github.com/bats-core/bats-core) tests in CI.
+The trade-off: Bash keeps the scripts dependency-free and readable on any server, but they target Debian and Ubuntu only and are not a replacement for Ansible once you manage more than a handful of hosts.
 
 | Script | What it does |
 |---|---|
@@ -18,7 +15,7 @@ argument-validated, `set -euo pipefail`, support `DRY_RUN=1` previews, ShellChec
 | `bin/restic-backup.sh` | Encrypted, deduplicated backups to any S3-compatible storage with retention policy and failure alerts |
 | `bin/log-cleanup.sh` | Vacuum journald, delete old rotated logs, truncate oversized Docker logs |
 | `bin/ssl-expiry-check.sh` | TLS expiry for many hosts, warn/critical thresholds, Nagios-style exit codes |
-| `bin/uptime-check.sh` | TCP port and HTTP(S) status checks with retries |
+| `bin/uptime-check.sh` | TCP port and HTTP(S) status checks with retries; TLS certificates are verified unless `--insecure` is passed |
 
 All alerting is optional: set `TG_TOKEN` and `TG_CHAT` to receive Telegram notifications.
 
@@ -40,7 +37,7 @@ cp examples/restic.env.example /etc/restic.env && chmod 600 /etc/restic.env   # 
 sudo ./bin/restic-backup.sh --env-file /etc/restic.env --init
 sudo ./bin/restic-backup.sh --env-file /etc/restic.env
 
-# Monitoring (great as cron / systemd timers)
+# Monitoring (run from cron or systemd timers)
 ./bin/ssl-expiry-check.sh -w 21 -c 7 example.com api.example.com:8443
 ./bin/uptime-check.sh tcp://127.0.0.1:5432 https://example.com/health 'https://example.com/admin#401'
 ```
@@ -79,6 +76,15 @@ Persistent=true
 WantedBy=timers.target
 ```
 
+## Limits
+
+- Debian and Ubuntu only (apt, UFW, systemd-journald).
+- `bootstrap-server.sh` changes SSH and firewall settings. Keep a second session open until you have logged in through the new port.
+- The checks are point-in-time scripts, not a monitoring system. Pair them with a scheduler and alerting, or use a real stack for anything beyond a few hosts.
+- The bats suite tests argument handling, dry-run output and the checkers against local listeners. It does not run the bootstrap or Docker install against a real VM.
+
+Security notes: [SECURITY.md](SECURITY.md).
+
 ## Development
 
 ```bash
@@ -88,4 +94,4 @@ make test   # bats tests/
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).

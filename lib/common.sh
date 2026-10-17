@@ -45,6 +45,7 @@ days_between() { echo $(( ($2 - $1) / 86400 )); }
 # Telegram alert if TG_TOKEN and TG_CHAT are set; silent no-op otherwise.
 notify() {
   [[ -n "${TG_TOKEN:-}" && -n "${TG_CHAT:-}" ]] || return 0
-  curl -fsS -m 10 "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-    -d chat_id="$TG_CHAT" --data-urlencode text="$1" >/dev/null || warn "notify failed"
+  # The URL carrying the token goes through a config on stdin, so it never shows up in `ps`.
+  printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TG_TOKEN" \
+    | curl -fsS -m 10 -K - -d chat_id="$TG_CHAT" --data-urlencode text="$1" >/dev/null || warn "notify failed"
 }

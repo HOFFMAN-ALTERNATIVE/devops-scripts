@@ -96,3 +96,21 @@ teardown_file() {
   run "$BIN/ssl-expiry-check.sh" 127.0.0.1:1
   [ "$status" -eq 2 ]
 }
+
+@test "uptime: tcp host is never evaluated by the shell" {
+  run "$BIN/uptime-check.sh" --retries 0 --timeout 2 "tcp://127.0.0.1\$(touch $BATS_TEST_TMPDIR/pwned):$PORT"
+  [ "$status" -eq 1 ]
+  [ ! -e "$BATS_TEST_TMPDIR/pwned" ]
+}
+
+@test "uptime: rejects non-numeric timeout and retries" {
+  run "$BIN/uptime-check.sh" --timeout abc "tcp://127.0.0.1:$PORT"
+  [ "$status" -ne 0 ]
+  run "$BIN/uptime-check.sh" --retries -1 "tcp://127.0.0.1:$PORT"
+  [ "$status" -ne 0 ]
+}
+
+@test "uptime: --insecure is accepted" {
+  run "$BIN/uptime-check.sh" --insecure --retries 0 "http://127.0.0.1:$PORT/"
+  [ "$status" -eq 0 ]
+}
