@@ -76,6 +76,15 @@ Persistent=true
 WantedBy=timers.target
 ```
 
+## Design decisions
+
+- [ADR 0001](docs/adr/0001-bash-with-shared-lib.md): plain Bash with `lib/common.sh`, so
+  the scripts run on a bare server. ShellCheck and bats keep it honest.
+- [ADR 0002](docs/adr/0002-sshd-drop-in-validated.md): SSH settings go into a drop-in
+  file, checked with `sshd -t` before a reload.
+- [ADR 0003](docs/adr/0003-restic-for-backups.md): restic for backups, because it does
+  encryption, deduplication and retention against any S3 bucket.
+
 ## Limits
 
 - Debian and Ubuntu only (apt, UFW, systemd-journald).
