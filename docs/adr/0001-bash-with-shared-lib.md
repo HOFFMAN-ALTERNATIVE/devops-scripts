@@ -22,7 +22,7 @@ real language. The discipline is enforced by tooling, not by hope.
 ## Consequences
 - Every script starts with `set -euo pipefail` and validates its arguments.
 - `run_cmd` in `common.sh` gives every script the same `DRY_RUN=1` preview.
-- ShellCheck runs in CI on `bin/` and `lib/`, and 21 bats tests cover argument
+- ShellCheck runs in CI on `bin/` and `lib/`, and 24 bats tests cover argument
   handling, dry-run output and the checkers against local listeners.
 - The bats suite cannot test the bootstrap or Docker install against a real VM.
 - Revisit, and move to Ansible, once there are more than a handful of hosts to keep in sync.
