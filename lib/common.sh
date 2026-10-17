@@ -49,3 +49,32 @@ notify() {
   printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TG_TOKEN" \
     | curl -fsS -m 10 -K - -d chat_id="$TG_CHAT" --data-urlencode text="$1" >/dev/null || warn "notify failed"
 }
+
+# install_sshd_dropin PATH CONTENT -> writes an sshd drop-in and validates the full config.
+# On a failed `sshd -t` the previous file is restored (or the new one removed), so a bad
+# config never stays on disk for the next sshd restart. SSHD_BIN overrides sshd for tests.
+install_sshd_dropin() {
+  local path="$1" content="$2" sshd_bin="${SSHD_BIN:-sshd}" dir backup="" tmp
+  dir="$(dirname "$path")"
+  [[ -d "$dir" ]] || die "drop-in directory does not exist: $dir"
+  if [[ -e "$path" ]]; then
+    backup="$(mktemp "$dir/.sshd-dropin-backup.XXXXXX")"
+    cp -p -- "$path" "$backup"
+  fi
+  tmp="$(mktemp "$dir/.sshd-dropin-new.XXXXXX")"
+  printf '%s\n' "$content" > "$tmp"
+  chmod 644 "$tmp"
+  mv -f -- "$tmp" "$path"
+  if "$sshd_bin" -t; then
+    [[ -n "$backup" ]] && rm -f -- "$backup"
+    return 0
+  fi
+  if [[ -n "$backup" ]]; then
+    mv -f -- "$backup" "$path"
+    err "sshd -t failed; restored previous $path"
+  else
+    rm -f -- "$path"
+    err "sshd -t failed; removed $path"
+  fi
+  return 1
+}

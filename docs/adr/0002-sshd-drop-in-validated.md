@@ -24,8 +24,10 @@ invalid config is never loaded.
 ## Consequences
 - Depends on the `Include sshd_config.d/*.conf` line that current Debian and Ubuntu
   ship. Older releases without it would ignore the drop-in.
-- If `sshd -t` fails, the script stops but leaves the drop-in on disk. The next sshd
-  restart would then fail too. Removing the file on failure is an open improvement.
+- If `sshd -t` fails, the previous drop-in is restored, or the new one removed when
+  there was none, so a bad config never waits on disk for the next sshd restart.
+  (Resolved 2026-10-17: `install_sshd_dropin` in `lib/common.sh`, covered by bats tests.
+  The first version of this ADR listed it as an open gap.)
 - UFW is configured right after the reload and opens the new port with `ufw limit`.
   If UFW was already active with other rules, there is a short window where the new
   port is closed. The README asks to keep a second session open for that reason.

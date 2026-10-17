@@ -44,3 +44,28 @@ setup() {
   run notify "hello"
   [ "$status" -eq 0 ]
 }
+
+@test "install_sshd_dropin keeps the new file when sshd -t passes" {
+  d="$BATS_TEST_TMPDIR/sshd.d"; mkdir -p "$d"
+  SSHD_BIN=true run install_sshd_dropin "$d/10-hardening.conf" "Port 2222"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$d/10-hardening.conf")" = "Port 2222" ]
+  [ -z "$(find "$d" -name '.sshd-dropin-*')" ]
+}
+
+@test "install_sshd_dropin removes a new file when sshd -t fails" {
+  d="$BATS_TEST_TMPDIR/sshd.d"; mkdir -p "$d"
+  SSHD_BIN=false run install_sshd_dropin "$d/10-hardening.conf" "Port bogus"
+  [ "$status" -eq 1 ]
+  [ ! -e "$d/10-hardening.conf" ]
+  [ -z "$(find "$d" -name '.sshd-dropin-*')" ]
+}
+
+@test "install_sshd_dropin restores the previous file when sshd -t fails" {
+  d="$BATS_TEST_TMPDIR/sshd.d"; mkdir -p "$d"
+  printf 'Port 22\n' > "$d/10-hardening.conf"
+  SSHD_BIN=false run install_sshd_dropin "$d/10-hardening.conf" "Port bogus"
+  [ "$status" -eq 1 ]
+  [ "$(cat "$d/10-hardening.conf")" = "Port 22" ]
+  [ -z "$(find "$d" -name '.sshd-dropin-*')" ]
+}

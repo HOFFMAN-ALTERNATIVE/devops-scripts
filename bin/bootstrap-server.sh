@@ -67,8 +67,7 @@ AllowUsers $USER_NAME"
 if [[ "${DRY_RUN:-0}" == "1" ]]; then
   printf '[dry-run] write %s:\n%s\n' "$SSHD_DROPIN" "$SSHD_CONF"
 else
-  printf '%s\n' "$SSHD_CONF" > "$SSHD_DROPIN"
-  sshd -t || die "sshd config test failed — not reloading"
+  install_sshd_dropin "$SSHD_DROPIN" "$SSHD_CONF" || die "sshd config test failed, not reloading"
   systemctl reload ssh 2>/dev/null || systemctl reload sshd
 fi
 

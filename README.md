@@ -4,7 +4,7 @@
 ![ShellCheck](https://img.shields.io/badge/shellcheck-clean-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-Six Bash scripts for running small Linux fleets: bootstrap a fresh VPS, install Docker, take encrypted off-site backups, reclaim disk space, and watch TLS expiry and uptime. Every script is idempotent, validates its arguments, runs under `set -euo pipefail`, supports a `DRY_RUN=1` preview, and is ShellCheck-clean. 21 [bats](https://github.com/bats-core/bats-core) tests run in CI.
+Six Bash scripts for running small Linux fleets: bootstrap a fresh VPS, install Docker, take encrypted off-site backups, reclaim disk space, and watch TLS expiry and uptime. Every script is idempotent, validates its arguments, runs under `set -euo pipefail`, supports a `DRY_RUN=1` preview, and is ShellCheck-clean. 24 [bats](https://github.com/bats-core/bats-core) tests run in CI.
 
 The trade-off: Bash keeps the scripts dependency-free and readable on any server, but they target Debian and Ubuntu only and are not a replacement for Ansible once you manage more than a handful of hosts.
 
